@@ -8,9 +8,12 @@ Google offers an LLM called Gemini
 
 [Gemini API in Android](https://ai.google.dev/tutorials/get_started_android) offers access directly from your Android app using the Google AI client SDK for Android. You can use this client SDK if you don't want to work directly with REST APIs or server-side code (like Python) for accessing Gemini models in your Android app.
 
-This is open-source code that uses the Gemini API on Android to recommend recipes with multiple parameters. There is also a parameter to send an image and get recommendations based on it.
+This App uses the Gemini API on Android to recommend recipes with multiple parameters. There is also a parameter to send an image and get recommendations based on it.
 
 ![1](https://github.com/jggomez/RecipeRecommenderGeminiAndroid/assets/661231/c1958613-fa42-4dd4-b0ed-657f9cb082fd)
+
+
+<img src="https://github.com/jggomez/RecipeRecommenderGeminiAndroid/assets/661231/c1958613-fa42-4dd4-b0ed-657f9cb082fd" width="500" height="1100">
 
 
 ![2](https://github.com/jggomez/RecipeRecommenderGeminiAndroid/assets/661231/25137b9b-86b9-42c5-8aa6-e8b52a485009)
