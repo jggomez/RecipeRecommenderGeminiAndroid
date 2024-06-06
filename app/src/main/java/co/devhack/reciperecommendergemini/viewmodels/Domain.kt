@@ -14,7 +14,19 @@ data class Recipe(
     val name: String,
     val ingredients: List<String>,
     val instructions: List<String>,
-    val totalCalories: Int,
+    val totalCalories: String,
     val videos: List<String>,
     val references: List<String>
+)
+
+@Serializable
+data class CountryRecipe(
+    val meals: List<Meal>
+)
+
+@Serializable
+data class Meal(
+    val strMeal: String,
+    val strMealThumb: String,
+    val idMeal: String,
 )

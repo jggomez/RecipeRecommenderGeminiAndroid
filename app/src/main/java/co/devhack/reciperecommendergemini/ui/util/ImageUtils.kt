@@ -1,4 +1,4 @@
-package co.devhack.reciperecommendergemini.ui.screens
+package co.devhack.reciperecommendergemini.ui.util
 
 import android.content.Context
 import android.content.Intent

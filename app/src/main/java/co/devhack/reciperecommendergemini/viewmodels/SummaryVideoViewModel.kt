@@ -9,46 +9,31 @@ import co.devhack.reciperecommendergemini.data.GeminiRepositoryImp
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
-data class RecipeUiState(
+data class SummaryVideoUiState(
     val screenState: ScreenState = ScreenState.Empty,
     val errorMessage: String = String(),
-    val recipes: List<Recipe> = emptyList(),
-    val message: String = String(),
+    val summary: String = String(),
+    val tokens: Int = 0,
 )
 
-data class Recipes(
-    val recipes: List<Recipe>
-)
-
-class RecipeViewModel : ViewModel() {
+class SummaryVideoViewModel : ViewModel() {
 
     private var geminiRepository: GeminiRepository = GeminiRepositoryImp()
-
-    var uiState by mutableStateOf(RecipeUiState(screenState = ScreenState.Empty))
+    var uiState by mutableStateOf(SummaryVideoUiState(screenState = ScreenState.Empty))
         private set
 
-    fun getRecipes(
-        recipeType: String,
-        region: String,
-        ingredients: List<String>,
-        language: String,
-        imagePath: String,
-    ) {
+    fun getSummary(videoUrl: String, textPrompt: String) {
         uiState = uiState.copy(screenState = ScreenState.Loading)
         viewModelScope.launch {
             try {
-
-                val recipes = geminiRepository.getRecipes(
-                    recipeType,
-                    region,
-                    ingredients,
-                    language,
-                    imagePath
-                )
+                val tokens = geminiRepository.getCountTokens(videoUrl, textPrompt)
+                val summary = geminiRepository.getSummaryVideo(videoUrl, textPrompt)
+                Timber.i("Summary: $summary")
                 uiState =
                     uiState.copy(
+                        summary = summary,
+                        tokens = tokens,
                         screenState = ScreenState.Success,
-                        recipes = recipes,
                     )
             } catch (e: Exception) {
                 Timber.e("Exception: ${e.message}")

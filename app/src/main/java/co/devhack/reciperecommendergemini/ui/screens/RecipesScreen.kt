@@ -1,12 +1,16 @@
 package co.devhack.reciperecommendergemini.ui.screens
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Info
@@ -38,7 +42,11 @@ fun RecipesScreen(
 
     val tabs = listOf("Option 1", "Option 2", "Option 3")
 
-    Column(modifier = modifier.fillMaxWidth().padding(16.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
         ScrollableTabRow(selectedTabIndex = tabIndex) {
             tabs.forEachIndexed { index, title ->
                 Tab(text = { Text(title) },
@@ -46,9 +54,20 @@ fun RecipesScreen(
                     onClick = { tabIndex = index },
                     icon = {
                         when (index) {
-                            0 -> Icon(imageVector = Icons.Default.Info, contentDescription = null)
-                            1 -> Icon(imageVector = Icons.Default.Info, contentDescription = null)
-                            2 -> Icon(imageVector = Icons.Default.Info, contentDescription = null)
+                            0 -> Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = null
+                            )
+
+                            1 -> Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = null
+                            )
+
+                            2 -> Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = null
+                            )
                         }
                     }
                 )
@@ -67,40 +86,48 @@ fun RecipeData(
     recipe: Recipe,
     modifier: Modifier = Modifier,
 ) {
-    Column(
+    val scrollState = rememberScrollState()
+
+    Box(
         modifier = modifier
-            .wrapContentHeight()
-            .fillMaxWidth()
+            .fillMaxSize()
+            .padding(16.dp)
     ) {
-        RowText(
-            label = "Name",
-            text = recipe.name,
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        RowText(
-            label = "Total Calories",
-            text = recipe.totalCalories.toString(),
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(text = "Ingredients")
-        Items(
-            items = recipe.ingredients
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(text = "Instructions")
-        Items(
-            items = recipe.instructions
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(text = "Videos")
-        Items(
-            items = recipe.videos
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(text = "References")
-        Items(
-            items = recipe.references
-        )
+        Column(
+            modifier = modifier
+                .height(600.dp)
+                .verticalScroll(scrollState)
+        ) {
+            RowText(
+                label = "Name",
+                text = recipe.name,
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            RowText(
+                label = "Total Calories",
+                text = recipe.totalCalories.toString(),
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(text = "Ingredients")
+            Items(
+                items = recipe.ingredients
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(text = "Instructions")
+            Items(
+                items = recipe.instructions
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(text = "Videos")
+            Items(
+                items = recipe.videos
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(text = "References")
+            Items(
+                items = recipe.references
+            )
+        }
     }
 }
 
@@ -148,7 +175,7 @@ fun RecipesPreview() {
             listOf(
                 Recipe(
                     name = "test1",
-                    totalCalories = 1000,
+                    totalCalories = "aprox 1000",
                     ingredients = listOf(
                         "Ingredient 1",
                         "Ingredient 2",

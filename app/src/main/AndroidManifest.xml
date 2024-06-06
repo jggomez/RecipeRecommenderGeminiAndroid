@@ -16,7 +16,7 @@
         android:theme="@style/Theme.RecipeRecommenderGemini"
         tools:targetApi="31">
         <activity
-            android:name="co.devhack.reciperecommendergemini.ui.screens.MainActivity"
+            android:name="co.devhack.reciperecommendergemini.ui.activities.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.RecipeRecommenderGemini">
             <intent-filter>

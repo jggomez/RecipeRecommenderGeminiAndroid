@@ -26,6 +26,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -41,7 +42,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import co.devhack.reciperecommendergemini.ui.activities.NavTopBar
 import co.devhack.reciperecommendergemini.ui.theme.RecipeRecommenderGeminiTheme
+import co.devhack.reciperecommendergemini.ui.util.ImageUtils
 import co.devhack.reciperecommendergemini.viewmodels.RecipeViewModel
 import co.devhack.reciperecommendergemini.viewmodels.Recipes
 import co.devhack.reciperecommendergemini.viewmodels.ScreenState
@@ -61,103 +64,115 @@ fun RecipeInputScreen(
     val imagePath = remember { mutableStateOf("") }
     val scrollState = rememberScrollState()
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Column(
-            modifier = modifier
-                .height(600.dp)
-                .verticalScroll(scrollState)
+    Scaffold(
+        modifier = modifier
+            .fillMaxSize(),
+        topBar = {
+            NavTopBar(
+                title = "Recipe Recommender",
+                canNavigateBack = false,
+            )
+        }
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
         ) {
-            IngredientInput(
-                onClick = { ingredient ->
-                    ingredients.add(ingredient)
-                },
-                onClickImage = {
-                    imagePath.value = it ?: ""
-                }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-            ItemList(
-                items = ingredients, //listOf("Vegan", "Vegetarian", "Low in Calories", "Low fat"),
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(text = "Types of food")
-            ItemSelectedList(
-                items = listOf("Vegan", "Vegetarian", "Low in Calories", "Low fat", "All"),
+            Column(
+                modifier = Modifier
+                    .height(600.dp)
+                    .verticalScroll(scrollState)
             ) {
-                selectedType.value = it
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(text = "Region")
-            ItemSelectedList(
-                items = listOf("Mexican", "Italian", "France", "Spain", "India"),
-            ) {
-                selectedRegion.value = it
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(text = "Language")
-            ItemSelectedList(
-                items = listOf("Spanish", "English"),
-            ) {
-                selectedLanguage.value = it
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            when {
-                recipeViewModel?.uiState?.errorMessage?.isBlank() == true -> {
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
+                IngredientInput(
+                    onClick = { ingredient ->
+                        ingredients.add(ingredient)
+                    },
+                    onClickImage = {
+                        imagePath.value = it ?: ""
+                    }
+                )
 
-                else -> recipeViewModel?.uiState?.errorMessage?.let {
-                    Text(
-                        text = it,
-                        modifier = Modifier.fillMaxSize()
-                    )
+                Spacer(modifier = Modifier.height(16.dp))
+                ItemList(
+                    items = ingredients, //listOf("Vegan", "Vegetarian", "Low in Calories", "Low fat"),
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(text = "Types of food")
+                ItemSelectedList(
+                    items = listOf("Vegan", "Vegetarian", "Low in Calories", "Low fat", "All"),
+                ) {
+                    selectedType.value = it
                 }
-            }
-        }
-
-        Row(modifier = Modifier.align(Alignment.BottomEnd)) {
-            Button(
-                modifier = Modifier.fillMaxWidth(),
-                onClick = {
-                    recipeViewModel?.getRecipes(
-                        recipeType = selectedType.value,
-                        region = selectedRegion.value,
-                        ingredients = ingredients,
-                        language = selectedLanguage.value,
-                        imagePath = imagePath.value
-                    )
-                }) {
-                when (recipeViewModel?.uiState?.screenState == ScreenState.Loading) {
-                    false -> Text(text = "Get Recipes")
-                    true -> CircularProgressIndicator(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                    )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(text = "Region")
+                ItemSelectedList(
+                    items = listOf("Mexican", "Italian", "France", "Spain", "India"),
+                ) {
+                    selectedRegion.value = it
                 }
-            }
-        }
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(text = "Language")
+                ItemSelectedList(
+                    items = listOf("English", "Español"),
+                ) {
+                    selectedLanguage.value = it
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                when {
+                    recipeViewModel?.uiState?.errorMessage?.isBlank() == true -> {
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
 
-        when (recipeViewModel?.uiState?.screenState == ScreenState.Success) {
-            true -> {
-                if (recipeViewModel?.uiState?.recipes?.isNotEmpty() == true) {
-                    onClickGetRecipes(
-                        Recipes(
-                            recipes = recipeViewModel.uiState.recipes
+                    else -> recipeViewModel?.uiState?.errorMessage?.let {
+                        Text(
+                            text = it,
+                            modifier = Modifier.fillMaxSize()
                         )
-                    )
-                } else {
-                    Text(
-                        text = "Recipes Not Found, Should change the parameters",
-                        modifier = Modifier.fillMaxSize()
-                    )
+                    }
                 }
             }
 
-            false -> {}
+            Row(modifier = Modifier.align(Alignment.BottomEnd)) {
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        recipeViewModel?.getRecipes(
+                            recipeType = selectedType.value,
+                            region = selectedRegion.value,
+                            ingredients = ingredients,
+                            language = selectedLanguage.value,
+                            imagePath = imagePath.value
+                        )
+                    }) {
+                    when (recipeViewModel?.uiState?.screenState == ScreenState.Loading) {
+                        false -> Text(text = "Get Recipes")
+                        true -> CircularProgressIndicator(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                        )
+                    }
+                }
+            }
+
+            when (recipeViewModel?.uiState?.screenState == ScreenState.Success) {
+                true -> {
+                    if (recipeViewModel?.uiState?.recipes?.isNotEmpty() == true) {
+                        onClickGetRecipes(
+                            Recipes(
+                                recipes = recipeViewModel.uiState.recipes
+                            )
+                        )
+                    } else {
+                        Text(
+                            text = "Recipes Not Found, Should change the parameters",
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
+
+                false -> {}
+            }
         }
     }
 }
