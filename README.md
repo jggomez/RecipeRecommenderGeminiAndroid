@@ -8,9 +8,9 @@ Google offers an LLM called Gemini
 
 [The Vertex AI Gemini API](https://firebase.google.com/docs/vertex-ai) gives you access to the latest generative AI models from Google: the Gemini models. If you need to call the Vertex AI Gemini API directly from your mobile or web app – rather than server-side — you can use the Vertex AI for Firebase SDKs
 
-
 This App uses the Gemini API on Android to recommend recipes with multiple parameters. There is also a parameter to send an image and get recommendations based on it.
 
+<img src="https://github.com/jggomez/RecipeRecommenderGeminiAndroid/assets/661231/cba3f14c-369c-445a-8311-279659614a1e" width="300" height="650">
 
 These are some parameters to obtain recommendations:
 ```
