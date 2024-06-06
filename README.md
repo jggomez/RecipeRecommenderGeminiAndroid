@@ -6,7 +6,8 @@ Google offers an LLM called Gemini
 
 [Gemini](https://blog.google/technology/ai/google-gemini-ai/#sundar-note) is the result of large-scale collaborative efforts by teams across Google, including our colleagues at Google Research. It was built from the ground up to be multimodal, which means it can generalize and seamlessly understand, operate across, and combine different types of information including text, code, audio, image, and video.
 
-[Gemini API in Android](https://ai.google.dev/tutorials/get_started_android) offers access directly from your Android app using the Google AI client SDK for Android. You can use this client SDK if you don't want to work directly with REST APIs or server-side code (like Python) for accessing Gemini models in your Android app.
+[The Vertex AI Gemini API](https://firebase.google.com/docs/vertex-ai) gives you access to the latest generative AI models from Google: the Gemini models. If you need to call the Vertex AI Gemini API directly from your mobile or web app – rather than server-side — you can use the Vertex AI for Firebase SDKs
+
 
 This App uses the Gemini API on Android to recommend recipes with multiple parameters. There is also a parameter to send an image and get recommendations based on it.
 
