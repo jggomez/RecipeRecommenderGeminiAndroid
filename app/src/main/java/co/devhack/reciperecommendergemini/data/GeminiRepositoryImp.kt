@@ -1,10 +1,11 @@
 package co.devhack.reciperecommendergemini.data
 
+import android.content.Context
 import android.graphics.BitmapFactory
 import co.devhack.RecipeRecommenderGemini.BuildConfig
-import co.devhack.reciperecommendergemini.viewmodels.CountryRecipe
-import co.devhack.reciperecommendergemini.viewmodels.GeminiRepository
-import co.devhack.reciperecommendergemini.viewmodels.Recipe
+import co.devhack.reciperecommendergemini.viewmodels.domain.CountryRecipe
+import co.devhack.reciperecommendergemini.viewmodels.domain.Recipe
+import co.devhack.reciperecommendergemini.viewmodels.repositories.GeminiRepository
 import com.google.firebase.Firebase
 import com.google.firebase.vertexai.Chat
 import com.google.firebase.vertexai.GenerativeModel
@@ -16,6 +17,7 @@ import com.google.firebase.vertexai.type.content
 import com.google.firebase.vertexai.type.defineFunction
 import com.google.firebase.vertexai.type.generationConfig
 import com.google.firebase.vertexai.vertexAI
+import com.google.mediapipe.tasks.genai.llminference.LlmInference
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.android.Android
@@ -23,7 +25,10 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.get
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
@@ -34,6 +39,12 @@ import timber.log.Timber
 class GeminiRepositoryImp : GeminiRepository {
 
     private lateinit var chat: Chat
+    private lateinit var llmInference: LlmInference
+    private val resultLLMMediaPipe = MutableSharedFlow<Pair<String, Boolean>>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+
     private var clientHttp: HttpClient = HttpClient(Android) {
         install(Logging)
         engine {
@@ -90,7 +101,7 @@ class GeminiRepositoryImp : GeminiRepository {
         region: String,
         ingredients: List<String>,
         language: String,
-        imagePath: String,
+        photos: List<String>,
     ): List<Recipe> {
         val prompt = """
             You are an expert cooking and the best chef. 
@@ -100,7 +111,7 @@ class GeminiRepositoryImp : GeminiRepository {
                 "$item, "
             }
         }
-           Also please the recipes should be '$recipeType and of$region' and all fields are mandatory
+           Also please the recipes should be '$recipeType and of $region' and all fields are mandatory
            Please each recipe must has the following:
            - Name as a string
            - Ingredients as an array of strings
@@ -136,16 +147,17 @@ class GeminiRepositoryImp : GeminiRepository {
         """
         Timber.i("Prompt -> $prompt")
 
-        Timber.i("ImagePath => $imagePath")
+        Timber.i("ImagePath => $photos")
 
-
-        val response = if (imagePath.isNotEmpty()) {
+        val response = if (photos.isNotEmpty()) {
             Timber.i("Using IMAGE")
-            val bmOptions = BitmapFactory.Options()
-            val bitmap = BitmapFactory.decodeFile(imagePath, bmOptions)
             val inputContent = content {
-                image(bitmap)
-                text("Detect the food objects of this picture and take these as ingredients and $prompt")
+                for (photo in photos) {
+                    val bmOptions = BitmapFactory.Options()
+                    val bitmap = BitmapFactory.decodeFile(photo, bmOptions)
+                    image(bitmap)
+                }
+                text("Detect the food objects of these pictures and take these as ingredients and $prompt")
             }
             generativeModel.generateContent(inputContent)
         } else {
@@ -159,9 +171,10 @@ class GeminiRepositoryImp : GeminiRepository {
             var responseText = response.text ?: ""
             if (responseText.contains("json")) {
                 responseText = responseText.substring(7, responseText.length - 3)
+                return Json.decodeFromString<List<Recipe>>(responseText)
             }
             Timber.i(responseText)
-            return Json.decodeFromString<List<Recipe>>(responseText)
+            return emptyList()
         } ?: return emptyList()
     }
 
@@ -241,6 +254,31 @@ class GeminiRepositoryImp : GeminiRepository {
         }
         return generativeModel.countTokens(prompt).totalTokens
     }
+
+    override suspend fun sendMessageLlmMediaPipe(message: String) {
+        llmInference.generateResponseAsync(message)
+    }
+
+    override suspend fun initLlmMediaPipe(context: Context) {
+        Timber.i("initLlmMediapipe")
+        val options = LlmInference.LlmInferenceOptions.builder()
+            .setModelPath("/data/local/tmp/llm/model.bin")
+            .setTemperature(0.5f)
+            .setMaxTokens(1024)
+            .setResultListener { partialResult, done ->
+                Timber.i("partial result: $partialResult")
+                Timber.i("done: $done")
+                resultLLMMediaPipe.tryEmit(partialResult to done)
+            }
+            .setErrorListener {
+                Timber.e(it)
+            }
+            .build()
+
+        llmInference = LlmInference.createFromOptions(context, options)
+    }
+
+    override suspend fun resultLlmMediaPipe() = resultLLMMediaPipe.asSharedFlow()
 
     private suspend fun getRecipesCountry(countryFrom: String): JSONObject {
         try {

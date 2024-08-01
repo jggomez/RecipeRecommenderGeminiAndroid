@@ -1,4 +1,4 @@
-package co.devhack.reciperecommendergemini.viewmodels
+package co.devhack.reciperecommendergemini.viewmodels.domain
 
 import kotlinx.serialization.Serializable
 

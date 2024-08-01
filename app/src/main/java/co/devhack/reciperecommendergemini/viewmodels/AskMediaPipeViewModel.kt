@@ -1,41 +1,37 @@
 package co.devhack.reciperecommendergemini.viewmodels
 
-
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.devhack.reciperecommendergemini.data.GeminiRepositoryImp
 import co.devhack.reciperecommendergemini.viewmodels.domain.ScreenState
 import co.devhack.reciperecommendergemini.viewmodels.repositories.GeminiRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
-data class ChatChefUiState(
+data class AskLlmMediaPipeUiState(
     val screenState: ScreenState = ScreenState.Empty,
     val errorMessage: String = String(),
     val message: String = String(),
 )
 
-class ChatChefViewModel : ViewModel() {
+class AskMediaPipeViewModel : ViewModel() {
 
     private var geminiRepository: GeminiRepository = GeminiRepositoryImp()
 
-    private val _uiState = MutableStateFlow(ChatChefUiState(screenState = ScreenState.Empty))
-    val uiState: StateFlow<ChatChefUiState> = _uiState
+    private val _uiState =
+        MutableStateFlow(AskLlmMediaPipeUiState(screenState = ScreenState.Empty))
 
-    var uiMessage by mutableStateOf(ChatChefUiState(screenState = ScreenState.Empty))
-        private set
+    val uiState: StateFlow<AskLlmMediaPipeUiState> = _uiState
 
-    fun initChat(withTools: Boolean) {
-        Timber.i("initChat -> withTools: $withTools")
+    fun initModel(context: Context) {
         _uiState.value = _uiState.value.copy(screenState = ScreenState.Loading)
         viewModelScope.launch {
             try {
-                geminiRepository.initChat(withTools)
+                geminiRepository.initLlmMediaPipe(context)
                 _uiState.value =
                     _uiState.value.copy(
                         screenState = ScreenState.Success,
@@ -51,18 +47,11 @@ class ChatChefViewModel : ViewModel() {
         }
     }
 
-    fun sendMessageStream(message: String) {
+    fun sendMessageLlmMediaPipe(prompt: String) {
         _uiState.value = _uiState.value.copy(screenState = ScreenState.Loading)
         viewModelScope.launch {
             try {
-                geminiRepository.sendMessageStream(message).collect { modelMessage ->
-                    Timber.i("Message: $modelMessage")
-                    _uiState.value =
-                        _uiState.value.copy(
-                            message = modelMessage,
-                            screenState = ScreenState.Success,
-                        )
-                }
+                geminiRepository.sendMessageLlmMediaPipe(prompt)
             } catch (e: Exception) {
                 Timber.e("Exception: ${e.message}")
                 _uiState.value =
@@ -74,22 +63,32 @@ class ChatChefViewModel : ViewModel() {
         }
     }
 
-    fun sendMessage(message: String) {
-        uiMessage = uiMessage.copy(screenState = ScreenState.Loading)
-        viewModelScope.launch {
+    fun getResultLlmMediaPipe() {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
-                geminiRepository.sendMessage(message).let { modelMessage ->
-                    Timber.i("Message: $modelMessage")
-                    uiMessage =
-                        uiMessage.copy(
-                            message = modelMessage,
-                            screenState = ScreenState.Success,
-                        )
-                }
+                geminiRepository.resultLlmMediaPipe()
+                    .collect { message ->
+                        val partText = message.first.trim().trimMargin()
+                        val done = message.second
+                        Timber.i("message viewmodel: $message")
+                        if (done.not()) {
+                            Timber.i("partText viewmodel: $partText")
+                            _uiState.value =
+                                _uiState.value.copy(
+                                    screenState = ScreenState.Loading,
+                                    message = partText
+                                )
+                        } else {
+                            _uiState.value =
+                                _uiState.value.copy(
+                                    screenState = ScreenState.Success,
+                                )
+                        }
+                    }
             } catch (e: Exception) {
                 Timber.e("Exception: ${e.message}")
-                uiMessage =
-                    uiMessage.copy(
+                _uiState.value =
+                    _uiState.value.copy(
                         screenState = ScreenState.Error,
                         errorMessage = e.message.toString()
                     )

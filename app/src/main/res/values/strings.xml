@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Recipe Recommender</string>
+    <string name="user_label">User</string>
+    <string name="model_label">Model</string>
 </resources>

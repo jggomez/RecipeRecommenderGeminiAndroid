@@ -6,6 +6,9 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.devhack.reciperecommendergemini.data.GeminiRepositoryImp
+import co.devhack.reciperecommendergemini.viewmodels.domain.Recipe
+import co.devhack.reciperecommendergemini.viewmodels.domain.ScreenState
+import co.devhack.reciperecommendergemini.viewmodels.repositories.GeminiRepository
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -32,7 +35,7 @@ class RecipeViewModel : ViewModel() {
         region: String,
         ingredients: List<String>,
         language: String,
-        imagePath: String,
+        photos: List<String>,
     ) {
         uiState = uiState.copy(screenState = ScreenState.Loading)
         viewModelScope.launch {
@@ -43,7 +46,7 @@ class RecipeViewModel : ViewModel() {
                     region,
                     ingredients,
                     language,
-                    imagePath
+                    photos
                 )
                 uiState =
                     uiState.copy(

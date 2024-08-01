@@ -29,7 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import co.devhack.reciperecommendergemini.ui.theme.RecipeRecommenderGeminiTheme
-import co.devhack.reciperecommendergemini.viewmodels.Recipe
+import co.devhack.reciperecommendergemini.viewmodels.domain.Recipe
 import timber.log.Timber
 
 @Composable
@@ -43,7 +43,7 @@ fun RecipesScreen(
     val tabs = listOf("Option 1", "Option 2", "Option 3")
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(16.dp)
     ) {

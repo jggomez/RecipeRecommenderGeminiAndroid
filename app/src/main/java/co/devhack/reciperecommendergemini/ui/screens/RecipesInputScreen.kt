@@ -20,10 +20,12 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
@@ -47,7 +49,7 @@ import co.devhack.reciperecommendergemini.ui.theme.RecipeRecommenderGeminiTheme
 import co.devhack.reciperecommendergemini.ui.util.ImageUtils
 import co.devhack.reciperecommendergemini.viewmodels.RecipeViewModel
 import co.devhack.reciperecommendergemini.viewmodels.Recipes
-import co.devhack.reciperecommendergemini.viewmodels.ScreenState
+import co.devhack.reciperecommendergemini.viewmodels.domain.ScreenState
 import coil.compose.AsyncImage
 import timber.log.Timber
 
@@ -61,8 +63,9 @@ fun RecipeInputScreen(
     val selectedType = remember { mutableStateOf("All") }
     val selectedRegion = remember { mutableStateOf("All") }
     val selectedLanguage = remember { mutableStateOf("en") }
-    val imagePath = remember { mutableStateOf("") }
+    val photos = remember { mutableStateListOf<String>() }
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
 
     Scaffold(
         modifier = modifier
@@ -86,17 +89,19 @@ fun RecipeInputScreen(
                     .verticalScroll(scrollState)
             ) {
                 IngredientInput(
+                    photos = photos,
                     onClick = { ingredient ->
                         ingredients.add(ingredient)
                     },
                     onClickImage = {
-                        imagePath.value = it ?: ""
+                        Timber.i("onClickImage -> $it")
+                        it?.let { path -> photos.add(path) }
                     }
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
                 ItemList(
-                    items = ingredients, //listOf("Vegan", "Vegetarian", "Low in Calories", "Low fat"),
+                    items = ingredients,
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(text = "Types of food")
@@ -143,12 +148,13 @@ fun RecipeInputScreen(
                             region = selectedRegion.value,
                             ingredients = ingredients,
                             language = selectedLanguage.value,
-                            imagePath = imagePath.value
+                            photos = photos
                         )
                     }) {
                     when (recipeViewModel?.uiState?.screenState == ScreenState.Loading) {
                         false -> Text(text = "Get Recipes")
                         true -> CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
                             color = MaterialTheme.colorScheme.surfaceVariant,
                         )
                     }
@@ -164,10 +170,11 @@ fun RecipeInputScreen(
                             )
                         )
                     } else {
-                        Text(
-                            text = "Recipes Not Found, Should change the parameters",
-                            modifier = Modifier.fillMaxSize()
-                        )
+                        Toast.makeText(
+                            context,
+                            "Recipes Not Found, Should change the parameters",
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
                 }
 
@@ -180,6 +187,7 @@ fun RecipeInputScreen(
 @Composable
 fun IngredientInput(
     modifier: Modifier = Modifier,
+    photos: List<String> = listOf(),
     onClick: (text: String) -> Unit = {},
     onClickImage: (absolutPath: String?) -> Unit = {}
 ) {
@@ -189,19 +197,17 @@ fun IngredientInput(
 
     val imageUtils = ImageUtils(context)
 
-    var currentPhoto by remember {
-        mutableStateOf<String?>(null)
-    }
-
     val launcher =
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == Activity.RESULT_OK) {
                 val data = it.data?.data
-                currentPhoto = if (data == null) {
+                val currentPhoto = if (data == null) {
                     imageUtils.currentPhotoPath
                 } else {
                     imageUtils.getPathFromGalleryUri(data)
                 }
+                Timber.i("rememberLauncherForActivityResult -> $currentPhoto")
+                onClickImage(currentPhoto)
             }
         }
 
@@ -217,42 +223,52 @@ fun IngredientInput(
     }
 
     Column(modifier = modifier) {
-        Text(text = "Add an ingredient")
+        Text(
+            text = "Add an ingredient",
+            modifier = Modifier.padding(bottom = 4.dp)
+        )
         Spacer(modifier = Modifier.width(16.dp))
-        TextField(
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text(text = "Ingredient") },
-            value = text,
-            onValueChange = { text = it })
+        Column {
+            Row {
+                TextField(
+                    modifier = Modifier.weight(0.8f),
+                    label = { Text(text = "Ingredient") },
+                    value = text,
+                    onValueChange = { text = it })
+                IconButton(
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .align(Alignment.CenterVertically)
+                        .fillMaxWidth()
+                        .weight(0.10f),
+                    onClick = {
+                        if (text != "") {
+                            onClick(text)
+                            text = ""
+                        }
+                    }) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.Send,
+                        contentDescription = "Send",
+                    )
+                }
+            }
+        }
         Spacer(modifier = Modifier.width(16.dp))
-        Row(modifier = Modifier.fillMaxWidth()) {
-            Button(
-                modifier = modifier
-                    .fillMaxWidth(0.5f)
-                    .align(Alignment.CenterVertically),
-                onClick = {
-                    if (text != "") {
-                        onClick(text)
-                        text = ""
-                    }
-                }) {
-                Text(text = "Add")
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Button(
-                modifier = modifier
-                    .fillMaxWidth(),
-                onClick = {
-                    val permissionCheckResult =
-                        ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
-                    if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
-                        launcher.launch(imageUtils.getIntent())
-                    } else {
-                        permissionLauncher.launch(Manifest.permission.CAMERA)
-                    }
-                }) {
-                Text(text = "Load Image")
-            }
+        Button(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp),
+            onClick = {
+                val permissionCheckResult =
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+                if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
+                    launcher.launch(imageUtils.getIntent())
+                } else {
+                    permissionLauncher.launch(Manifest.permission.CAMERA)
+                }
+            }) {
+            Text(text = "Load Image")
         }
         Spacer(modifier = Modifier.width(16.dp))
         Row(
@@ -261,16 +277,16 @@ fun IngredientInput(
                 .wrapContentHeight()
                 .align(Alignment.CenterHorizontally)
         ) {
-            Timber.i("currentPhoto -> $currentPhoto")
-            if (currentPhoto != null) {
-                Timber.i("currentPhoto -> $currentPhoto")
+            for (photo in photos) {
+                Timber.i("currentPhoto -> $photo")
                 AsyncImage(
-                    model = currentPhoto,
+                    model = photo,
                     contentDescription = "icon",
-                    contentScale = ContentScale.Inside,
-                    modifier = Modifier.size(150.dp)
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .padding(start = 6.dp)
+                        .size(80.dp)
                 )
-                onClickImage(currentPhoto)
             }
         }
     }
@@ -282,19 +298,23 @@ fun ItemList(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.wrapContentHeight()) {
-        items.forEach { item ->
-            Row(
-                modifier = modifier
-                    .padding(horizontal = 8.dp)
-                    .height(25.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.CheckCircle,
-                    tint = MaterialTheme.colorScheme.primary,
-                    contentDescription = "Viñeta",
-                )
-                Text(text = item)
+        if (items.isEmpty().not()) {
+            Text(text = "Ingredients")
+            Spacer(modifier = Modifier.height(8.dp))
+            items.forEach { item ->
+                Row(
+                    modifier = modifier
+                        .padding(horizontal = 8.dp)
+                        .height(25.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.CheckCircle,
+                        tint = MaterialTheme.colorScheme.primary,
+                        contentDescription = "Viñeta",
+                    )
+                    Text(text = item)
+                }
             }
         }
     }

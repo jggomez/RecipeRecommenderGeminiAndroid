@@ -6,6 +6,8 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.devhack.reciperecommendergemini.data.GeminiRepositoryImp
+import co.devhack.reciperecommendergemini.viewmodels.domain.ScreenState
+import co.devhack.reciperecommendergemini.viewmodels.repositories.GeminiRepository
 import kotlinx.coroutines.launch
 import timber.log.Timber
 

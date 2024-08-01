@@ -20,6 +20,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import co.devhack.reciperecommendergemini.ui.screens.AskLlmMediaPipeScreen
 import co.devhack.reciperecommendergemini.ui.screens.ChatChefScreen
 import co.devhack.reciperecommendergemini.ui.screens.ChatChefStreamScreen
 import co.devhack.reciperecommendergemini.ui.screens.MenuScreen
@@ -28,6 +29,7 @@ import co.devhack.reciperecommendergemini.ui.screens.RecipesScreen
 import co.devhack.reciperecommendergemini.ui.screens.SummaryScreen
 import co.devhack.reciperecommendergemini.ui.theme.RecipeRecommenderGeminiTheme
 import co.devhack.reciperecommendergemini.viewmodels.ChatChefViewModel
+import co.devhack.reciperecommendergemini.viewmodels.AskMediaPipeViewModel
 import co.devhack.reciperecommendergemini.viewmodels.RecipeViewModel
 import co.devhack.reciperecommendergemini.viewmodels.Recipes
 import co.devhack.reciperecommendergemini.viewmodels.SummaryVideoViewModel
@@ -40,6 +42,8 @@ enum class RecipeScreens {
     CHAT_CHEF_STREAM,
     CHAT_CHEF,
     VIDEO_SUMMARY,
+    LLM_MEDIA_PIPE,
+    LLM_MEDIA_PIPE_TUNING,
     MENU,
 }
 
@@ -60,6 +64,7 @@ fun RecipeApp(
     recipeViewModel: RecipeViewModel = viewModel(),
     chatChefViewModel: ChatChefViewModel = viewModel(),
     summaryVideoViewModel: SummaryVideoViewModel = viewModel(),
+    askMediaPipeViewModel: AskMediaPipeViewModel = viewModel(),
     navController: NavHostController = rememberNavController()
 ) {
     Scaffold(
@@ -125,6 +130,22 @@ fun RecipeApp(
                 Timber.i("Navigation in ${RecipeScreens.VIDEO_SUMMARY.name}")
                 SummaryScreen(
                     summaryVideoViewModel = summaryVideoViewModel
+                )
+            }
+            composable(
+                route = RecipeScreens.LLM_MEDIA_PIPE.name
+            ) {
+                Timber.i("Navigation in ${RecipeScreens.LLM_MEDIA_PIPE.name}")
+                AskLlmMediaPipeScreen(
+                    askMediaPipeViewModel = askMediaPipeViewModel
+                )
+            }
+            composable(
+                route = RecipeScreens.LLM_MEDIA_PIPE_TUNING.name
+            ) {
+                Timber.i("Navigation in ${RecipeScreens.LLM_MEDIA_PIPE_TUNING.name}")
+                AskLlmMediaPipeScreen(
+                    askMediaPipeViewModel = askMediaPipeViewModel
                 )
             }
         }

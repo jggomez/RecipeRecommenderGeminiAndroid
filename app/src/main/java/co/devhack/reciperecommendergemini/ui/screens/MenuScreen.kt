@@ -1,8 +1,6 @@
 package co.devhack.reciperecommendergemini.ui.screens
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -42,73 +40,90 @@ fun MenuScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            Row(
+            Button(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.5f)
-            ) {
-                Button(
-                    modifier = Modifier
-                        .fillMaxWidth(0.5f)
-                        .fillMaxHeight(),
-                    shape = MaterialTheme.shapes.extraSmall,
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                    onClick = { onClickScreen(RecipeScreens.RECIPE_INPUT) }) {
-                    Text(
-                        text = "Getting the best recipes",
-                        textAlign = TextAlign.Center,
-                        style = typography.headlineSmall,
-                        modifier = Modifier.align(Alignment.CenterVertically)
-                    )
-                }
-                Button(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(),
-                    shape = MaterialTheme.shapes.extraSmall,
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
-                    onClick = { onClickScreen(RecipeScreens.CHAT_CHEF_STREAM) }) {
-                    Text(
-                        text = "Chatting with a chef",
-                        textAlign = TextAlign.Center,
-                        style = typography.headlineSmall,
-                        modifier = Modifier.align(Alignment.CenterVertically)
-                    )
-                }
+                    .weight(1f),
+                shape = MaterialTheme.shapes.extraSmall,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                onClick = { onClickScreen(RecipeScreens.RECIPE_INPUT) }) {
+                Text(
+                    text = "Getting the best recipes",
+                    textAlign = TextAlign.Center,
+                    style = typography.headlineSmall,
+                    modifier = Modifier.align(Alignment.CenterVertically)
+                )
             }
-            Row(
+            Button(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight()
-            ) {
-                Button(
-                    modifier = Modifier
-                        .fillMaxWidth(0.5f)
-                        .fillMaxHeight(),
-                    shape = MaterialTheme.shapes.extraSmall,
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
-                    onClick = { onClickScreen(RecipeScreens.CHAT_CHEF) }) {
-                    Text(
-                        text = "Chatting with a chef and your data",
-                        textAlign = TextAlign.Center,
-                        style = typography.headlineSmall,
-                        modifier = Modifier.align(Alignment.CenterVertically)
-                    )
-                }
-                Button(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(),
-                    shape = MaterialTheme.shapes.extraSmall,
-                    onClick = { onClickScreen(RecipeScreens.VIDEO_SUMMARY) }) {
-                    Text(
-                        text = "Getting a summary of your favorite recipe videos",
-                        textAlign = TextAlign.Center,
-                        style = typography.headlineSmall,
-                        modifier = Modifier.align(Alignment.CenterVertically)
-                    )
-                }
+                    .weight(1f),
+                shape = MaterialTheme.shapes.extraSmall,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                onClick = { onClickScreen(RecipeScreens.CHAT_CHEF_STREAM) }) {
+                Text(
+                    text = "Chatting with a chef",
+                    textAlign = TextAlign.Center,
+                    style = typography.headlineSmall,
+                    modifier = Modifier.align(Alignment.CenterVertically)
+                )
             }
+            Button(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                shape = MaterialTheme.shapes.extraSmall,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                onClick = { onClickScreen(RecipeScreens.CHAT_CHEF) }) {
+                Text(
+                    text = "Chatting with a chef and your data",
+                    textAlign = TextAlign.Center,
+                    style = typography.headlineSmall,
+                    modifier = Modifier.align(Alignment.CenterVertically)
+                )
+            }
+            Button(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                shape = MaterialTheme.shapes.extraSmall,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                onClick = { onClickScreen(RecipeScreens.VIDEO_SUMMARY) }) {
+                Text(
+                    text = "Getting a summary of your favorite recipe videos",
+                    textAlign = TextAlign.Center,
+                    style = typography.headlineSmall,
+                    modifier = Modifier.align(Alignment.CenterVertically)
+                )
+            }
+            Button(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                shape = MaterialTheme.shapes.extraSmall,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                onClick = { onClickScreen(RecipeScreens.LLM_MEDIA_PIPE) }) {
+                Text(
+                    text = "LLM MediaPipe On Device",
+                    textAlign = TextAlign.Center,
+                    style = typography.headlineSmall,
+                    modifier = Modifier.align(Alignment.CenterVertically)
+                )
+            }
+            /*Button(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                shape = MaterialTheme.shapes.extraSmall,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                onClick = { onClickScreen(RecipeScreens.LLM_MEDIA_PIPE_TUNING) }) {
+                Text(
+                    text = "LLM MediaPipe On Device - Tuning",
+                    textAlign = TextAlign.Center,
+                    style = typography.headlineSmall,
+                    modifier = Modifier.align(Alignment.CenterVertically)
+                )
+            }*/
         }
     }
 }

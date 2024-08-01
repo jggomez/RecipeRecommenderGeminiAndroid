@@ -1,8 +1,7 @@
 package co.devhack.reciperecommendergemini.ui.screens
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,22 +10,24 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Send
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -36,13 +37,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import co.devhack.RecipeRecommenderGemini.R
 import co.devhack.reciperecommendergemini.ui.activities.NavTopBar
 import co.devhack.reciperecommendergemini.ui.theme.RecipeRecommenderGeminiTheme
 import co.devhack.reciperecommendergemini.viewmodels.ChatChefUiState
 import co.devhack.reciperecommendergemini.viewmodels.ChatChefViewModel
-import co.devhack.reciperecommendergemini.viewmodels.ScreenState
+import co.devhack.reciperecommendergemini.viewmodels.domain.ScreenState
 
 data class Message(
     val text: String,
@@ -60,7 +65,7 @@ fun ChatChefStreamScreen(
         chatChefViewModel?.initChat(false)
     }
 
-    val uiState = chatChefViewModel?.uiState?.collectAsState(initial = ChatChefUiState())
+    val uiState = chatChefViewModel?.uiState?.collectAsStateWithLifecycle(ChatChefUiState())
     val message = uiState?.value?.message
 
     if (message?.isNotBlank() == true) {
@@ -185,32 +190,33 @@ fun InputUserMessage(
     onClick: (text: String) -> Unit = {},
 ) {
     var text by remember { mutableStateOf("") }
-    val keyboardController = LocalSoftwareKeyboardController.current
 
     Row(
         modifier = modifier.fillMaxWidth()
     ) {
         TextField(
-            modifier = Modifier.fillMaxWidth(0.8f),
+            modifier = Modifier.weight(0.9f),
             label = { Text(text = "Write your message") },
             value = text,
             onValueChange = { text = it },
-            keyboardActions = KeyboardActions(
-                onDone = { keyboardController?.hide() })
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.Sentences,
+            ),
         )
-        Button(
-            modifier = Modifier.fillMaxWidth(),
+        IconButton(
+            modifier = Modifier
+                .weight(0.1f)
+                .padding(start = 8.dp),
             onClick = {
                 onClick(text)
                 text = ""
             }) {
             when (screenState == ScreenState.Loading) {
                 false -> Icon(
-                    imageVector = Icons.Filled.Send,
+                    imageVector = Icons.AutoMirrored.Filled.Send,
                     contentDescription = "",
                     modifier = Modifier
                         .align(Alignment.CenterVertically)
-                        .fillMaxWidth()
                 )
 
                 true -> CircularProgressIndicator(
@@ -222,40 +228,61 @@ fun InputUserMessage(
 }
 
 @Composable
-
 fun Messages(
     modifier: Modifier = Modifier,
     messages: List<Message> = emptyList(),
 ) {
     messages.forEach { message ->
-        if (message.isUser) {
-            Row(
-                modifier = modifier
-                    .fillMaxWidth()
-                    .background(
-                        Color.LightGray,
-                        shape = RoundedCornerShape(3.dp)
-                    ),
-                horizontalArrangement = Arrangement.Start
-            ) {
-                Text(
-                    text = message.text,
-                    color = Color.Black,
-                    modifier = Modifier.align(Alignment.CenterVertically),
-                )
-            }
-            Spacer(modifier = Modifier.height(16.dp))
+        val backgroundColor = if (message.isUser) {
+            MaterialTheme.colorScheme.tertiaryContainer
         } else {
-            Row(
-                modifier = modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                Text(
-                    text = message.text,
-                    modifier = Modifier.align(Alignment.CenterVertically),
-                )
+            MaterialTheme.colorScheme.secondaryContainer
+        }
+
+        val bubbleShape = if (message.isUser) {
+            RoundedCornerShape(20.dp, 4.dp, 20.dp, 20.dp)
+        } else {
+            RoundedCornerShape(4.dp, 20.dp, 20.dp, 20.dp)
+        }
+
+        val horizontalAlignment = if (message.isUser) {
+            Alignment.End
+        } else {
+            Alignment.Start
+        }
+
+        val author = if (message.isUser) {
+            stringResource(R.string.user_label)
+        } else {
+            stringResource(R.string.model_label)
+        }
+
+        Column(
+            horizontalAlignment = horizontalAlignment,
+            modifier = modifier
+                .padding(horizontal = 8.dp, vertical = 4.dp)
+                .fillMaxWidth()
+        ) {
+            Text(
+                text = author,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+            Row {
+                BoxWithConstraints {
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = backgroundColor),
+                        shape = bubbleShape,
+                        modifier = Modifier.widthIn(0.dp, maxWidth * 0.9f)
+                    ) {
+                        Text(
+                            text = message.text,
+                            color = Color.White,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                }
             }
-            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
