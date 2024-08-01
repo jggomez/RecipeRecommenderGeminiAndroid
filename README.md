@@ -10,28 +10,25 @@ Google offers an LLM called Gemini
 
 This App uses the Gemini API on Android to recommend recipes with multiple parameters. There is also a parameter to send an image and get recommendations based on it.
 
-<img src="https://github.com/jggomez/RecipeRecommenderGeminiAndroid/assets/661231/cba3f14c-369c-445a-8311-279659614a1e" width="300" height="650">
+<img src="https://github.com/user-attachments/assets/1a3544bf-caf3-4f67-b33d-7fdf935057ff" width="300" height="650">
+
+### Examples Generation Text
 
 These are some parameters to obtain recommendations:
-```
-- Add some basic ingredients.
-- Choose types of food.
-- Choose Region
-- Choose the output language
-```
+* **Add some basic ingredients.**
+* **Choose types of food.**
+* **Choose Region**
+* **Choose the output language**
 
-<img src="https://github.com/jggomez/RecipeRecommenderGeminiAndroid/assets/661231/c1958613-fa42-4dd4-b0ed-657f9cb082fd" width="300" height="650">
-
+<img src="https://github.com/user-attachments/assets/e8115696-03d1-4462-8b01-d7e56354ab73" width="300" height="650">
 
 The app will show three options with the following information:
-```
-- Name
-- Calories
-- Ingredients
-- Instructions
-- Videos
-- References
-```
+* **Name**
+* **Calories**
+* **Ingredients**
+* **Instructions**
+* **Videos**
+* **References**
 
 <img src="https://github.com/jggomez/RecipeRecommenderGeminiAndroid/assets/661231/25137b9b-86b9-42c5-8aa6-e8b52a485009" width="300" height="650">
 
@@ -43,23 +40,36 @@ Output Options in another language:
 
 <img src="https://github.com/jggomez/RecipeRecommenderGeminiAndroid/assets/661231/2293c2cb-bb97-4231-8ad4-0ad205c4ad4d" width="300" height="650">
 
+### Examples Prompt Multimodal
+
 There is also a parameter to send an image and get recommendations based on it:
 
-<img src="https://github.com/jggomez/RecipeRecommenderGeminiAndroid/assets/661231/5e4b473f-1556-47c4-9dc5-0315f84f51b9" width="300" height="650">
+<img src="https://github.com/user-attachments/assets/6ae7c914-7894-427d-8d96-75c684dae304" width="300" height="650">
+
+### Examples Chat
 
 You can `chat` with a chef, ask for help cooking, and ask about specific recipes:
 
-<img src="https://github.com/jggomez/RecipeRecommenderGeminiAndroid/assets/661231/1b6bcf53-e307-4ca1-948e-c2164fbaeb9e" width="300" height="650">
-<img src="https://github.com/jggomez/RecipeRecommenderGeminiAndroid/assets/661231/7f018617-1e0c-433c-96d1-343ccf841692" width="300" height="650">
+<img src="https://github.com/user-attachments/assets/eb4854df-2017-4df9-b307-100e5b84f72e" width="300" height="650">
+<img src="https://github.com/user-attachments/assets/80b1df2b-7a56-469e-ae7d-85d3a4d78ce8" width="300" height="650">
 
-You can `chat` with a chef using `Functions Calling`. Function calling helps you connect generative models to external systems so that the generated content includes the most up-to-date and accurate information. This time this API is called `(https://themealdb.com/api/json/v1/1/filter.php?a=)`
+### Examples Chat with a chef using `Functions Calling`
 
-<img src="https://github.com/jggomez/RecipeRecommenderGeminiAndroid/assets/661231/b1cbbb00-39fa-4021-827f-161a791a7373" width="300" height="650">
+**You can `chat` with a chef using `Functions Calling`**. Function calling helps you connect generative models to external systems so that the generated content includes the most up-to-date and accurate information. This time this API is called `(https://themealdb.com/api/json/v1/1/filter.php?a=)`
+
+<img src="https://github.com/user-attachments/assets/60cc2701-b40e-4070-9133-0241e740c328" width="300" height="650">
+
+### Examples Prompt Multimodal
 
 Additionally, you can get a `summary` of a video
 
 <img src="https://github.com/jggomez/RecipeRecommenderGeminiAndroid/assets/661231/f893af2d-370d-489e-8286-f666c3d3b81f" width="300" height="650">
 
+### LLM on Device with MediaPipe
+
+Now you can run an LLM on your mobile with [MediPipe](https://ai.google.dev/edge/mediapipe/solutions/genai/llm_inference)
+
+<img src="https://github.com/user-attachments/assets/3de579fe-3494-4ddc-9fad-3d4b2b44587d" width="300" height="650">
 
 Made with ❤ by  [jggomez](https://devhack.co).
 
