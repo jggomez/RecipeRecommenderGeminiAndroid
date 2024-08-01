@@ -1,4 +1,4 @@
-# Recipe Recommender Gemini in Android
+# Recipe Recommender with Gemini on Android
 
 A large language model [LLM](https://cloud.google.com/ai/llms?hl=en)  is a statistical language model, trained on a massive amount of data, that can be used to generate and translate text and other content and perform other natural language processing (NLP) tasks. LLMs are typically based on deep learning architectures, such as the [Transformer](https://arxiv.org/abs/1706.03762) developed by Google in 2017, and can be trained on billions of text and other content.
 
