@@ -9,12 +9,11 @@ import co.devhack.reciperecommendergemini.viewmodels.repositories.GeminiReposito
 import com.google.firebase.Firebase
 import com.google.firebase.vertexai.Chat
 import com.google.firebase.vertexai.GenerativeModel
+import com.google.firebase.vertexai.type.FunctionDeclaration
 import com.google.firebase.vertexai.type.FunctionResponsePart
-import com.google.firebase.vertexai.type.InvalidStateException
 import com.google.firebase.vertexai.type.Schema
 import com.google.firebase.vertexai.type.Tool
 import com.google.firebase.vertexai.type.content
-import com.google.firebase.vertexai.type.defineFunction
 import com.google.firebase.vertexai.type.generationConfig
 import com.google.firebase.vertexai.vertexAI
 import com.google.mediapipe.tasks.genai.llminference.LlmInference
@@ -32,11 +31,19 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
-import org.json.JSONObject
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonPrimitive
 import timber.log.Timber
 
 
 class GeminiRepositoryImp : GeminiRepository {
+
+    companion object {
+        const val FUNCTION_GET_RECIPE_FROM_COUNTRY = "getRecipeFromCountry"
+        const val FUNCTION_PARAM_COUNTRY_FROM = "countryFrom"
+    }
 
     private lateinit var chat: Chat
     private lateinit var llmInference: LlmInference
@@ -59,17 +66,30 @@ class GeminiRepositoryImp : GeminiRepository {
         }
     }
 
-    private val getRecipeFromCountry = defineFunction(
-        name = "getRecipeFromCountry",
-        description = "Get recipes from a country example mexican recipes",
-        Schema.str("countryFrom", "Get recipes from this country"),
-    ) { countryFrom ->
-        getRecipesCountry(countryFrom)
-    }
+    private val recipeSchema = Schema.array(
+        Schema.obj(
+            mapOf(
+                "name" to Schema.string("Name of the recipe"),
+                "ingredients" to Schema.array(Schema.string("Ingredients of the recipe")),
+                "instructions" to Schema.array(Schema.string("Instructions of the recipe")),
+                "totalCalories" to Schema.integer("Total calories of the recipe"),
+                "videos" to Schema.array(Schema.string("Videos of the recipe")),
+                "references" to Schema.array(Schema.string("References of the recipe")),
+            )
+        )
+    )
+
+    private val getRecipeFromCountry = FunctionDeclaration(
+        name = FUNCTION_GET_RECIPE_FROM_COUNTRY,
+        description = "Get recipes from country cuisines example mexican recipes",
+        parameters = mapOf(
+            FUNCTION_PARAM_COUNTRY_FROM to Schema.string("country cuisines example mexican or italian or spanish"),
+        ),
+    )
 
     private var generativeModelWithTools: GenerativeModel = Firebase.vertexAI.generativeModel(
         modelName = BuildConfig.IMAGE_MODEL_NAME,
-        tools = listOf(Tool(listOf(getRecipeFromCountry))),
+        tools = listOf(Tool.functionDeclarations(listOf(getRecipeFromCountry))),
         generationConfig = generationConfig {
             temperature = 0.8f
         },
@@ -86,6 +106,22 @@ class GeminiRepositoryImp : GeminiRepository {
         modelName = BuildConfig.IMAGE_MODEL_NAME,
         generationConfig = generationConfig {
             temperature = 0.8f
+        },
+        systemInstruction = content {
+            text(
+                "You are an expert cooking and the best chef. Create recipes with these food ingredients." +
+                        "You don't know about other any topic except cooking. " +
+                        "With another topic you should answer with 'I don't know about this topic' "
+            )
+        }
+    )
+
+    private var generativeModelWithSchema: GenerativeModel = Firebase.vertexAI.generativeModel(
+        modelName = BuildConfig.IMAGE_MODEL_NAME,
+        generationConfig = generationConfig {
+            temperature = 0.8f
+            responseMimeType = "application/json"
+            responseSchema = recipeSchema
         },
         systemInstruction = content {
             text(
@@ -159,22 +195,16 @@ class GeminiRepositoryImp : GeminiRepository {
                 }
                 text("Detect the food objects of these pictures and take these as ingredients and $prompt")
             }
-            generativeModel.generateContent(inputContent)
+            generativeModelWithSchema.generateContent(inputContent)
         } else {
             Timber.i("Using TEXT")
-            generativeModel.generateContent(prompt)
+            generativeModelWithSchema.generateContent(prompt)
         }
 
         Timber.i("Gemini Response -> $response")
         response.text?.let {
             Timber.i(response.text)
-            var responseText = response.text ?: ""
-            if (responseText.contains("json")) {
-                responseText = responseText.substring(7, responseText.length - 3)
-                return Json.decodeFromString<List<Recipe>>(responseText)
-            }
-            Timber.i(responseText)
-            return emptyList()
+            return Json.decodeFromString<List<Recipe>>(response.text ?: "")
         } ?: return emptyList()
     }
 
@@ -211,28 +241,41 @@ class GeminiRepositoryImp : GeminiRepository {
     override suspend fun sendMessage(userMessage: String): String {
         Timber.i("sendMessage: User Message -> $userMessage")
         var response = chat.sendMessage(userMessage)
-        response.functionCalls.forEach { functionCall ->
-            Timber.i("tool called -> ${functionCall.name}")
-            val matchedFunction =
-                generativeModelWithTools.tools?.flatMap { it.functionDeclarations }
-                    ?.first { it.name == functionCall.name }
-                    ?: throw InvalidStateException("Function not found: ${functionCall.name}")
 
-            Timber.i("matchedFunction -> $matchedFunction")
+        val functionGetRecipeFromCountry =
+            response.functionCalls.find { it.name == FUNCTION_GET_RECIPE_FROM_COUNTRY }
 
-            // Call the lambda retrieved above
-            val apiResponse: JSONObject = matchedFunction.execute(functionCall)
-            Timber.i("apiResponse -> $apiResponse")
+        Timber.i("functionGetRecipeFromCountry: $functionGetRecipeFromCountry")
 
-            // Send the API response back to the generative model
-            // so that it generates a text response that can be displayed to the user
-            response = chat.sendMessage(
-                content(role = "function") {
-                    part(FunctionResponsePart(functionCall.name, apiResponse))
+        functionGetRecipeFromCountry?.let {
+            val countryFromParam =
+                it.args[FUNCTION_PARAM_COUNTRY_FROM]?.jsonPrimitive?.content ?: ""
+            if (countryFromParam.isEmpty().not()) {
+                Timber.i("Calling API with country cuisine-> $countryFromParam")
+                val apiResponse = getRecipesCountry(countryFromParam)
+                if (apiResponse.contains("error").not()) {
+                    apiResponse.let {
+                        Timber.i("API Response -> $apiResponse")
+                        response = chat.sendMessage(
+                            content(role = "function") {
+                                part(
+                                    FunctionResponsePart(
+                                        FUNCTION_GET_RECIPE_FROM_COUNTRY,
+                                        apiResponse
+                                    )
+                                )
+                            }
+                        )
+                    }
+                } else {
+                    Timber.e("Error API Response -> $apiResponse")
+                    response = chat.sendMessage(userMessage)
                 }
-            )
+            }
         }
-
+        if (response.text.isNullOrEmpty()) {
+            return "I'm sorry, I don't understand or There is a problem with the tools"
+        }
         return response.text ?: "I'm sorry, I don't understand"
     }
 
@@ -260,10 +303,9 @@ class GeminiRepositoryImp : GeminiRepository {
     }
 
     override suspend fun initLlmMediaPipe(context: Context) {
-        Timber.i("initLlmMediapipe")
+        Timber.i("init LLM Media pipe")
         val options = LlmInference.LlmInferenceOptions.builder()
             .setModelPath("/data/local/tmp/llm/model.bin")
-            .setTemperature(0.5f)
             .setMaxTokens(1024)
             .setResultListener { partialResult, done ->
                 Timber.i("partial result: $partialResult")
@@ -280,31 +322,40 @@ class GeminiRepositoryImp : GeminiRepository {
 
     override suspend fun resultLlmMediaPipe() = resultLLMMediaPipe.asSharedFlow()
 
-    private suspend fun getRecipesCountry(countryFrom: String): JSONObject {
+    private suspend fun getRecipesCountry(countryFrom: String): JsonObject {
         try {
             Timber.i("Calling API")
             val response: CountryRecipe =
                 clientHttp.get("${BuildConfig.API_URL_GET_FOOD_MEXICAN}${countryFrom}").body()
             Timber.i("API Response -> $response")
-            val meals = ArrayList<JSONObject>()
+
+            if (response.meals.isNullOrEmpty()) {
+                return JsonObject(
+                    mapOf("error" to JsonPrimitive("No recipes found"))
+                )
+            }
+
+            val meals = ArrayList<JsonObject>()
+
             response.meals.forEach { meal ->
                 meals.add(
-                    JSONObject().apply {
-                        put("name", meal.strMeal)
-                        put("image", meal.strMealThumb)
-                    }
+                    JsonObject(
+                        mapOf(
+                            "name" to JsonPrimitive(meal.strMeal),
+                            "image" to JsonPrimitive(meal.strMealThumb)
+                        )
+                    )
                 )
             }
-            return JSONObject().apply {
-                put(
-                    "meals", meals
-                )
-            }
+
+            return JsonObject(
+                mapOf("meals" to JsonArray(meals))
+            )
         } catch (e: Exception) {
             Timber.e(e)
         }
-        return JSONObject().apply {
-            put("error", "Something went wrong")
-        }
+        return JsonObject(
+            mapOf("error" to JsonPrimitive("Something went wrong, create you an optimal answer"))
+        )
     }
 }

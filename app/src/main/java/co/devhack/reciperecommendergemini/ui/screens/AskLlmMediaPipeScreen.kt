@@ -16,6 +16,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -66,7 +67,7 @@ fun AskLlmMediaPipeScreen(
 
     when (uiState?.value?.screenState) {
         ScreenState.Loading -> {
-            val message = uiState.value.message ?: ""
+            val message = uiState.value.message
             if (lastMessage != message) {
                 response += when {
                     lastMessage.isEmpty() -> message.replaceFirstChar { it.uppercase() }
@@ -104,6 +105,7 @@ fun AskBody(
     onClick: (String) -> Unit,
 ) {
     val scrollState = rememberScrollState()
+    var text by remember { mutableStateOf("") }
 
     Scaffold(
         modifier = modifier
@@ -124,8 +126,15 @@ fun AskBody(
         ) {
             AskInput(
                 screenState = screenState,
-            ) {
-                onClick(it)
+                text = text,
+                textChange = { text = it },
+                onClick = {
+                    onClick(it)
+                }
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            ExampleOptions{
+                text = it
             }
             Spacer(modifier = Modifier.width(16.dp))
             LlmResponse(
@@ -134,16 +143,36 @@ fun AskBody(
             )
         }
     }
+}
 
+@Composable
+fun ExampleOptions(
+    modifier: Modifier = Modifier,
+    onClick: (String) -> Unit,
+) {
+    Column(modifier = modifier) {
+        Button(onClick = { onClick("Get Mexican Recipes") }) {
+            Text(text = "Get Mexican Recipes")
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        Button(onClick = { onClick("How to cook a pizza") }) {
+            Text(text = "How to cook a pizza")
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        Button(onClick = { onClick("What are the ingredients of a Sancocho Valluno?") }) {
+            Text(text = "What are the ingredients of a Sancocho Valluno?")
+        }
+    }
 }
 
 @Composable
 fun AskInput(
     screenState: ScreenState,
+    text: String,
     modifier: Modifier = Modifier,
     onClick: (String) -> Unit,
+    textChange: (String) -> Unit,
 ) {
-    var text by remember { mutableStateOf("") }
 
     Row(modifier.fillMaxWidth()) {
         TextField(
@@ -153,14 +182,14 @@ fun AskInput(
                 capitalization = KeyboardCapitalization.Sentences,
             ),
             value = text,
-            onValueChange = { text = it })
+            onValueChange = textChange)
         IconButton(
             modifier = Modifier
                 .weight(0.1f)
                 .padding(start = 8.dp),
             onClick = {
                 onClick(text)
-                text = ""
+                textChange("")
             }) {
             when (screenState == ScreenState.Loading) {
                 false -> Icon(

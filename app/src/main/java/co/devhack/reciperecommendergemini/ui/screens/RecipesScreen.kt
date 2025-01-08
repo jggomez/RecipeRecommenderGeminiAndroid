@@ -37,7 +37,7 @@ fun RecipesScreen(
     recipes: List<Recipe>,
     modifier: Modifier = Modifier,
 ) {
-    Timber.i("RecipesScreen -> $recipes")
+    Timber.i("Rendering RecipesScreen with -> $recipes")
     var tabIndex by remember { mutableIntStateOf(0) }
 
     val tabs = listOf("Option 1", "Option 2", "Option 3")
@@ -175,7 +175,7 @@ fun RecipesPreview() {
             listOf(
                 Recipe(
                     name = "test1",
-                    totalCalories = "aprox 1000",
+                    totalCalories = 1000,
                     ingredients = listOf(
                         "Ingredient 1",
                         "Ingredient 2",

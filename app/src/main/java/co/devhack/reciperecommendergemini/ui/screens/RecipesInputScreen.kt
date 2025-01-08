@@ -67,6 +67,26 @@ fun RecipeInputScreen(
     val scrollState = rememberScrollState()
     val context = LocalContext.current
 
+    when (recipeViewModel?.uiState?.screenState == ScreenState.Success) {
+        true -> {
+            if (recipeViewModel?.uiState?.recipes?.isNotEmpty() == true) {
+                onClickGetRecipes(
+                    Recipes(
+                        recipes = recipeViewModel.uiState.recipes
+                    )
+                )
+            } else {
+                Toast.makeText(
+                    context,
+                    "Recipes Not Found, Should change the parameters",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+
+        false -> {}
+    }
+
     Scaffold(
         modifier = modifier
             .fillMaxSize(),
@@ -159,26 +179,6 @@ fun RecipeInputScreen(
                         )
                     }
                 }
-            }
-
-            when (recipeViewModel?.uiState?.screenState == ScreenState.Success) {
-                true -> {
-                    if (recipeViewModel?.uiState?.recipes?.isNotEmpty() == true) {
-                        onClickGetRecipes(
-                            Recipes(
-                                recipes = recipeViewModel.uiState.recipes
-                            )
-                        )
-                    } else {
-                        Toast.makeText(
-                            context,
-                            "Recipes Not Found, Should change the parameters",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                }
-
-                false -> {}
             }
         }
     }

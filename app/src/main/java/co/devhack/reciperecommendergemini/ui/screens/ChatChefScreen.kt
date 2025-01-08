@@ -153,7 +153,7 @@ fun ChatChefBody(
     ) {
         Column(
             modifier = Modifier
-                .height(600.dp)
+                .height(550.dp)
                 .verticalScroll(scrollState)
         ) {
             Messages(

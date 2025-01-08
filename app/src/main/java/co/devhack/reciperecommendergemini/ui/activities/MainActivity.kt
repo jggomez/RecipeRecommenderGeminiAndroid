@@ -28,8 +28,8 @@ import co.devhack.reciperecommendergemini.ui.screens.RecipeInputScreen
 import co.devhack.reciperecommendergemini.ui.screens.RecipesScreen
 import co.devhack.reciperecommendergemini.ui.screens.SummaryScreen
 import co.devhack.reciperecommendergemini.ui.theme.RecipeRecommenderGeminiTheme
-import co.devhack.reciperecommendergemini.viewmodels.ChatChefViewModel
 import co.devhack.reciperecommendergemini.viewmodels.AskMediaPipeViewModel
+import co.devhack.reciperecommendergemini.viewmodels.ChatChefViewModel
 import co.devhack.reciperecommendergemini.viewmodels.RecipeViewModel
 import co.devhack.reciperecommendergemini.viewmodels.Recipes
 import co.devhack.reciperecommendergemini.viewmodels.SummaryVideoViewModel
@@ -100,8 +100,8 @@ fun RecipeApp(
                 route = "${RecipeScreens.RECIPES.name}?recipes={recipes}",
             ) { backStackEntry ->
                 backStackEntry.arguments?.getString("recipes")?.let {
-                    Timber.i("Navigation in ${RecipeScreens.RECIPES.name}")
-                    Timber.i("Navigation -> $it")
+                    Timber.i("Menu - Navigation in ${RecipeScreens.RECIPES.name}")
+                    Timber.i("Menu - Navigation -> $it")
                     val recipes = Gson().fromJson(it, Recipes::class.java)
                     RecipesScreen(
                         recipes = recipes.recipes
@@ -170,7 +170,7 @@ fun NavTopBar(
             navigationIcon = {
                 IconButton(onClick = navigateUp) {
                     Icon(
-                        imageVector = Icons.Default.ArrowBack,
+                        imageVector = Icons.Filled.ArrowBack,
                         contentDescription = "back"
                     )
                 }
